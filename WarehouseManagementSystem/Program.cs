@@ -1,5 +1,6 @@
 ﻿using WarehouseManagementSystem.Business;
 using WarehouseManagementSystem.Domain;
+using WarehouseManagementSystem.Domain.Extensions;
 
 var order = new Order
 {
@@ -14,6 +15,16 @@ var order = new Order
 };
 
 var processor = new OrderProcessor();
+
+//Extension methods
+
+var report = order.GenerateReport("Marko Samoilovic");
+Console.WriteLine(report);
+
+foreach (var item in order.LineItems.Find(item => item.Price > 10))
+{
+    Console.WriteLine(item.Name);
+} 
 
 processor.OnOrderInitialized = SendToWarehouse;
 
