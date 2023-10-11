@@ -14,13 +14,13 @@ namespace WarehouseManagementSystem.Domain.Extensions
             return builder.ToString();
         }
 
-        public static string GenerateReport(this Order order, string recepient)
+        public static string GenerateReport(this Order order, string receipient)
         {
             var builder = new StringBuilder();
             builder.AppendLine($"ORDER REPORT ({order.OrderNumber})");
             builder.AppendLine($"Items: {order.LineItems?.Count()}");
             builder.AppendLine($"Total: {order.Total}");
-            builder.AppendLine($"Send to: {recepient}");
+            builder.AppendLine($"Send to: {receipient}");
 
             return builder.ToString();
         }

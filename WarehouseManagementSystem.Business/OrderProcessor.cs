@@ -53,6 +53,20 @@ namespace WarehouseManagementSystem.Business
             return string.Empty;
         }
 
+
+        public (Guid Order, int? Items, decimal? Total ) Process(IEnumerable<Order> orders)
+        {
+            var summaries = orders.Select(order =>
+            (
+                Order : order.OrderNumber,
+                Items : order.LineItems?.Count(),
+                Total : order.LineItems?.Sum(item => item.Price)
+            ));
+
+            var orderedSummaries = summaries.OrderBy(sum => sum.Total).First();
+
+            return orderedSummaries;
+        }
         
     }
 } 
