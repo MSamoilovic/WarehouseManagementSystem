@@ -42,9 +42,25 @@
         {
             return !(left == right);
         }
+
+        public void Deconstruct(out decimal total, out bool ready)
+        {
+            total = Total;
+            ready = IsReadyForShipment;
+        }
     }
 
     public class ProcessedOrder : Order { }
+
+    public class PriorityOrder: Order { }
+    public class ShippedOrder:Order
+    {
+        public DateTime ShippedDate { get; set; }
+    }
+    public class CancelledOrder: Order
+    {
+        public DateTime CancelledDate { get; set; }
+    }
 
     public class Item
     {

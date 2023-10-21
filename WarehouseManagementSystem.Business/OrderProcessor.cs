@@ -5,68 +5,97 @@ namespace WarehouseManagementSystem.Business
     public class OrderProcessor
     {
         public Func<Order, bool>? OnOrderInitialized { get; set; }
-
         public event EventHandler<OrderCreatedEventArgs>? OrderCreated;
-        public event EventHandler<OrderCompletedEventArgs>? OrderCompleted;
-        private void Initialize(Order order)
-        {
-        }
-
+        public event EventHandler<OrderCompletedEventArgs>? OrderProcessCompleted;
         protected virtual void OnOrderCreated(OrderCreatedEventArgs args)
         {
             OrderCreated?.Invoke(this, args);
         }
-
-        protected virtual void OnOrderCompleted(OrderCompletedEventArgs args)
+        protected virtual void OnOrderProcessCompleted(OrderCompletedEventArgs args)
         {
-            OrderCompleted?.Invoke(this, args);
+            OrderProcessCompleted?.Invoke(this, args);
         }
-
-        public void Process(Order order)
+        private void Initialize(Order order)
         {
-            // Run some code..
             ArgumentNullException.ThrowIfNull(order);
 
             if (OnOrderInitialized?.Invoke(order) == false)
             {
-                throw new InvalidOperationException($"Nesto je poslo po zlu po order {order.OrderNumber}");
-            };
-
+                throw new Exception($"Couldn't initialize {order.OrderNumber}");
+            }
+        }
+        public void Process(Order order)
+        {
             Initialize(order);
 
             OnOrderCreated(new()
             {
                 Order = order,
-                OldPrice = 250,
-                NewPrice = 240
+                OldPrice = 100,
+                NewPrice = 80
             });
 
-            //OnOrderFinalized?.Invoke(order);
+            OnOrderProcessCompleted(new() { Order = order });
+        }
+        public void Process(Order order, decimal discount)
+        {
+            Initialize(order);
 
-            OnOrderCompleted(new() { Order = order });
+            OnOrderCreated(new()
+            {
+                Order = order,
+                OldPrice = 100,
+                NewPrice = 100 - discount
+            });
 
-            // How do I produce a shipping label?
+            OnOrderProcessCompleted(new() { Order = order });
         }
 
-        public string Process(Order order, decimal discount)
+        public IEnumerable<(Guid orderNumber,
+            int amountOfItems,
+            decimal total,
+            IEnumerable<Item> items)>
+            Process(IEnumerable<Order> orders)
         {
-            return string.Empty;
-        }
 
-
-        public (Guid Order, int? Items, decimal? Total ) Process(IEnumerable<Order> orders)
-        {
             var summaries = orders.Select(order =>
-            (
-                Order : order.OrderNumber,
-                Items : order.LineItems?.Count(),
-                Total : order.LineItems?.Sum(item => item.Price)
-            ));
+            {
+                return
+                (
+                    Order: order.OrderNumber,
+                    Items: order.LineItems!.Count(),
+                    Total: order.LineItems!.Sum(item => item.Price),
+                    LineItems: order.LineItems
+                );
+            });
 
-            var orderedSummaries = summaries.OrderBy(sum => sum.Total).First();
+            var orderedSummaries = summaries.OrderBy(summary => summary.Total);
 
-            return orderedSummaries;
+            return orderedSummaries!;
+
+            //var summary = orderedSummaries.First();
+
+            //var summaryWithTax = summary with
+            //{
+            //    Total = summary.Total * 1.25m
+            //};
+
+            //return summaryWithTax;
         }
-        
+
+
+        private decimal CalculateFreightCost(Order order)
+        => order.ShippingProvider switch
+        {
+            SwedishPostalServiceShippingProvider
+            { DeliverNextDay: true }
+            provider => provider.FreightCost + 50m,
+
+            SwedishPostalServiceShippingProvider
+            provider => provider.FreightCost - 50m,
+
+            var provider => provider?.FreightCost ?? 50m
+        };
+
     }
-} 
+}

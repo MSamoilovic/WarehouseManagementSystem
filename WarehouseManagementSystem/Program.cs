@@ -4,7 +4,7 @@ using WarehouseManagementSystem.Domain;
 using WarehouseManagementSystem.Domain.Extensions;
 
 #region Load the orders from orders.json
-IEnumerable<Order> orders = JsonSerializer.Deserialize<Order[]>(File.ReadAllText("orders.json"));
+IEnumerable<Order> orders = JsonSerializer.Deserialize<Order[]>(File.ReadAllText("orders.json"))!;
 #endregion
 
 var isReadyForShipment = (Order order) =>
@@ -14,6 +14,16 @@ var isReadyForShipment = (Order order) =>
 var processor = new OrderProcessor
 {
     OnOrderInitialized = isReadyForShipment
+};
+
+
+var resultTuple = processor.Process(orders!);
+
+
+//Records and object initializationq
+var newCustomer = new Customer("Marko", "Samoilovic")
+{
+    Address = new("Pop Lukina 1/4/1", "Sabac")
 };
 
 Order order = new Order
@@ -27,7 +37,7 @@ Order order = new Order
     }
 };
 
-processor.Process(orders);
+processor.Process(order);
 
 
 var instance2 = new
@@ -37,6 +47,7 @@ var instance2 = new
     AveragePrice = order.LineItems.Average(item => item.Price)
 };
 
+order.GenerateReport("Marko Samoilovic");
 
 // Modifying and Returning Anonymous Types 
 var result = processor.Process(orders);
@@ -80,7 +91,7 @@ var cheapestItems = order.LineItems.Where(item => item.Price > 60)
 Console.ReadLine();
 
 // Creating an Extension Method Library
-var report = order.GenerateReport(receipient: "Marko Samoilovic");
+var report = order.GenerateReport(recipient: "Marko Samoilovic");
 Console.WriteLine(report);
 
 
@@ -97,7 +108,7 @@ processor.OrderCreated += (sender, args) =>
 
 };
 
-processor.OrderCreated += Log;
+processor.OrderCreated += Log!;
 
 processor.Process(order);
 
@@ -107,16 +118,16 @@ void Log(object sender, EventArgs args)
     Console.WriteLine("Log method call");
 }
 
-bool SendMessageToWarehouse(Order order)
-{
-    Console.WriteLine($"Please pack the order {order.OrderNumber}");
+//bool SendMessageToWarehouse(Order order)
+//{
+//    Console.WriteLine($"Please pack the order {order.OrderNumber}");
 
-    return true;
-}
+//    return true;
+//}
 
-void SendConfirmationEmail(Order order)
-{
-    Console.WriteLine($"Order Confirmation Email for {order.OrderNumber}");
-}
+//void SendConfirmationEmail(Order order)
+//{
+//    Console.WriteLine($"Order Confirmation Email for {order.OrderNumber}");
+//}
 
 Console.ReadLine();
