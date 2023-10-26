@@ -91,7 +91,7 @@ var cheapestItems = order.LineItems.Where(item => item.Price > 60)
 Console.ReadLine();
 
 // Creating an Extension Method Library
-var report = order.GenerateReport(recipient: "Marko Samoilovic");
+var report = order.GenerateReport(recepient: "Marko Samoilovic");
 Console.WriteLine(report);
 
 
